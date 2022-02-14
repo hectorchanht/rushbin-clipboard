@@ -1,15 +1,29 @@
-import { AddIcon, DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
-import { Box, Button, Divider, Grid, GridItem, Textarea, useToast } from '@chakra-ui/react';
+import { AddIcon, ArrowBackIcon, ArrowForwardIcon, DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
+import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Text, Textarea, useToast } from '@chakra-ui/react';
 import React from 'react';
 //@ts-ignore
 import useClipboard from 'react-hook-clipboard';
 import { supabase } from '../libs/supabaseClient';
 
 
+/*
+logic:
+
+const user_id = supabase.auth.user()?.id
+
+if user_id exist, get/set data to supabase
+else get/set to localStorage
+*/
+
+const UserSetting = '';
+
 const HistoricalData = () => {
   const [historicalData, setHistoricalData] = React.useState<string[] | []>([]);
   const [clipboard, copyToClipboard] = useClipboard({ updateFrequency: 50 });
-  const [isLoading, setIsLoading] = React.useState({ add: false, remove: false });
+  const [isLoading, setIsLoading] = React.useState({ add: false, remove: false, get: false });
+  const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: 5, canNextPage: false });
+
+  const [freeText, setFreeText] = React.useState('')
 
   const toast = useToast();
 
@@ -17,118 +31,280 @@ const HistoricalData = () => {
     title: msg,
     status: 'error',
     isClosable: true,
-  })
+  });
 
+  const PaginationTool = () => (
+    <Flex>
+      <Button
+        colorScheme='pink' variant='solid'
+        isDisabled={pagination.currentPage <= 1}
+        onClick={() => setPagination(d => ({ ...d, currentPage: d.currentPage - 1 }))}
+      >
+        <ArrowBackIcon />
+      </Button>
 
-  const paste = () => navigator.clipboard.readText()
-    .then(async clipText => {
+      <Select
+        placeholder={`page size: ${pagination.pageSize}`}
+        onChange={(e) => setPagination(d => ({ ...d, pageSize: Number(e.target.value) }))}>
+        {[5, 10, 20, 50, 100].map(d => <option key={d} value={d}>{d}</option>)}
+      </Select>
+
+      <Button
+        colorScheme='pink' variant='solid'
+        isDisabled={historicalData.length < pagination.pageSize}
+        onClick={() => setPagination(d => ({ ...d, currentPage: d.currentPage + 1 }))}
+      >
+        <ArrowForwardIcon />
+      </Button>
+    </Flex>
+  );
+
+  const handleSave = async (clipText: string) => {
+    setIsLoading(d => ({ ...d, add: true }));
+    try {
       const user_id = supabase.auth.user()?.id;
-      setIsLoading(d => ({ ...d, add: true }))
       if (!user_id) {
-        toastError('Please login');
+        // @ts-ignore
+        const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
+        // @ts-ignore
+        const incrementalId = JSON.parse(localStorage.getItem("incremental-id")) || 0;
+        const data = [{ id: incrementalId, created_at: new Date(), val: clipText, user_id: 'localStorage' }, ...oldData];
+        localStorage.setItem("rushbin-data", JSON.stringify(data));
+        localStorage.setItem("incremental-id", JSON.stringify(Number(incrementalId) + 1));
+
         return;
       }
 
       const { data, error }: any = await supabase
         .from('rushbin-data')
-        .insert([
-          { val: clipText, user_id }
-        ])
-      setIsLoading(d => ({ ...d, add: false }))
+        .insert([{ val: clipText, user_id }])
 
       if (error) {
         toastError(error.message);
         return
       }
-      setHistoricalData(d => [...data, ...d])
-    });
+    } finally {
+      getData();
+      setIsLoading(d => ({ ...d, add: false }))
+    }
+  };
 
   const getData = async () => {
-    // todo: pagination
+    let dataArray = [];
     const user_id = supabase.auth.user()?.id;
+    setIsLoading(d => ({ ...d, get: true }))
 
-    if (!user_id) {
-      setHistoricalData([]);
-      return;
-    }
+    const
+      start = (pagination.currentPage * pagination.pageSize) - pagination.pageSize,
+      end = (pagination.currentPage * pagination.pageSize) - 1;
+    // console.log(` HistoricalData.tsx --- {start,end}:`, { start, end, currentPage: pagination.currentPage, pageSize: pagination.pageSize })
 
-    let { data, error }: any = await supabase
-      .from('rushbin-data')
-      .select('*')
-      .eq('user_id', user_id)
-      .order('created_at', { ascending: false })
-    if (error) {
-      toastError(error.message);
-      return
+    try {
+      if (!user_id) {
+        // @ts-ignore
+        dataArray = JSON.parse(localStorage.getItem("rushbin-data")).slice(start, end + 1) || [];
+      } else {
+        const { data, error }: any = await supabase
+          .from('rushbin-data')
+          .select('*')
+          .eq('user_id', user_id)
+          .order('created_at', { ascending: false })
+          .range(start, end);
+        if (error) {
+          toastError(error.message);
+          return
+        }
+
+        dataArray = data
+      }
     }
-    setHistoricalData(data)
+    finally {
+      setIsLoading(d => ({ ...d, get: false }))
+      setHistoricalData(dataArray)
+    }
   }
 
   const removeItem = async (id: string) => {
-    setIsLoading(d => ({ ...d, remove: true }))
-    const { data, error } = await supabase
-      .from('rushbin-data')
-      .delete()
-      .eq('id', id);
-    setIsLoading(d => ({ ...d, remove: false }))
+    setIsLoading(d => ({ ...d, remove: true }));
 
-    console.log(` HistoricalData.tsx --- { data, error }:`, { data, error })
-    if (error) {
-      toastError(error.message);
-      return
+    try {
+      const user_id = supabase.auth.user()?.id;
+
+      if (!user_id) {
+        // @ts-ignore
+        const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
+        const data = oldData.filter((d: { id: string }) => d.id !== id);
+
+        localStorage.setItem("rushbin-data", JSON.stringify(data));
+        return;
+      }
+
+      const { error } = await supabase
+        .from('rushbin-data')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        toastError(error.message);
+        return
+      }
+    } finally {
+      getData();
+      setIsLoading(d => ({ ...d, remove: false }));
     }
-    // @ts-ignore
-    setHistoricalData(d => d.filter(dd => dd.id !== data[0].id))
   }
 
   React.useEffect(() => {
-    getData()
-    console.log(` index.tsx --- getData():`,)
+    supabase.auth.onAuthStateChange(() => {
+      getData();
+    });
+  }, []);
 
-  }, [supabase.auth.user()?.id]);
+  React.useEffect(() => {
+    getData();
+  }, [pagination.currentPage, pagination.pageSize]);
 
-  if (!supabase.auth.user()?.id) return null;
+  const RenderDeleteData = ({ getData, data }: any) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const onClose = () => setIsOpen(false);
+
+    const handleClearData = async () => {
+      const user_id = supabase.auth.user()?.id;
+
+      if (user_id) {
+        await supabase
+          .from('rushbin-data')
+          .delete()
+          .eq('user_id', user_id);
+      } else {
+        localStorage.setItem("rushbin-data", JSON.stringify([]));
+        localStorage.setItem("incremental-id", JSON.stringify(0));
+      }
+
+      getData && getData();
+    }
+
+    return (
+      <Box>
+        <Button colorScheme='red' isFullWidth onClick={() => setIsOpen(true)} isDisabled={data.length < 1}>
+          Delete Data
+        </Button>
+
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Delete Data</ModalHeader>
+            <ModalBody>
+              <Text>
+                are you sure to delete all data?
+              </Text>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button onClick={onClose}>
+                No
+              </Button>
+              <Button colorScheme='red' ml={3} onClick={handleClearData}>
+                Yes
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        <br />
+        <br />
+      </Box>
+    )
+  }
+
 
   return (
     <>
-      <Box maxH={'200px'} overflowY={'auto'}>
-        <Textarea value={clipboard} />
-      </Box>
+      <RenderDeleteData data={historicalData} getData={getData} />
 
-      <Button onClick={paste} isLoading={isLoading.add} rightIcon={<AddIcon />} colorScheme='teal' variant='solid'>
-        Save Clipboard
+      <Textarea
+        value={freeText}
+        onChange={(e) => setFreeText(e.target.value)}
+        placeholder='Text Box'
+      />
+      <Button isFullWidth isDisabled={!freeText}
+        onClick={() => handleSave(freeText).then(() => setFreeText(''))} isLoading={isLoading.add}
+        rightIcon={<AddIcon />} colorScheme='teal' variant='solid'>
+        Save from Text Box
+      </Button>
+
+      {/* <Flex alignItems={'center'} my={6}>
+        <Divider />
+        or
+        <Divider />
+      </Flex> */}
+      <br />
+      <br />
+
+      <Textarea value={clipboard} isReadOnly />
+
+      <Button isFullWidth onClick={() => navigator.clipboard.readText().then(d => handleSave(d))} isLoading={isLoading.add} rightIcon={<AddIcon />} colorScheme='teal' variant='solid'>
+        Save from Clipboard
       </Button>
 
       <br />
       <br />
-      <Divider />
+      <PaginationTool />
       <br />
 
-      <Grid
-        templateColumns='repeat(5, 1fr)'
-        gap={6}
-        alignItems={'center'}
-      >
-        {historicalData.map((d: any) => (
-          <React.Fragment key={d.id}          >
-            <GridItem rowSpan={1} >
-              <Button onClick={() => copyToClipboard(d.val)}>
-                <DownloadIcon />
-              </Button>
-            </GridItem>
-            <GridItem cursor={'pointer'} colSpan={1} >
-              <Button onClick={() => removeItem(d.id)} isLoading={isLoading.remove}>
-                <DeleteIcon />
-              </Button>
-            </GridItem>
-            <GridItem colSpan={3} >
-              <Textarea value={d.val} />
-            </GridItem>
-          </React.Fragment>
-        ))}
-      </Grid>
+      {
+        isLoading.get
+          ? <RenderLoadingData />
+          : <LocalGrid>
+            {historicalData.map((d: any) => (
+              <React.Fragment key={`${d.id}_${d.val}`}>
+                <GridItem rowSpan={1} >
+                  <Button isFullWidth onClick={() => copyToClipboard(d.val)}>
+                    <DownloadIcon />
+                  </Button>
+                </GridItem>
+                <GridItem colSpan={1} >
+                  <Button isFullWidth onClick={() => removeItem(d.id)} isLoading={isLoading.remove}>
+                    <DeleteIcon />
+                  </Button>
+                </GridItem>
+                <GridItem colSpan={4} >
+                  <Textarea value={d.val} isReadOnly />
+                </GridItem>
+              </React.Fragment>
+            ))}
+          </LocalGrid>
+      }
     </>
   )
 }
+
+const RenderLoadingData = () => <LocalGrid>
+  {[...Array(5)].map((_, i) => <React.Fragment key={i}>
+    <GridItem colSpan={1} >
+      <Skeleton height='50px' />
+    </GridItem>
+    <GridItem colSpan={1} >
+      <Skeleton height='50px' />
+    </GridItem>
+    <GridItem colSpan={4} >
+      <Skeleton height='80px' />
+    </GridItem>
+  </React.Fragment>
+  )}
+</LocalGrid>;
+
+const LocalGrid = ({ children, ...rest }: any) => (
+  <Grid
+    templateColumns='repeat(6, 1fr)'
+    gap={3}
+    alignItems={'center'}
+    textAlign={'left'}
+    {...rest}
+  >
+    {children}
+  </Grid>
+);
+
 
 export default HistoricalData;
