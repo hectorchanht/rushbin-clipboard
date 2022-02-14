@@ -1,4 +1,4 @@
-import { AddIcon, ArrowBackIcon, ArrowForwardIcon, DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
+import { AddIcon, ArrowBackIcon, ArrowForwardIcon, DeleteIcon, DownloadIcon, MinusIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Stack, Text, Textarea, useToast } from '@chakra-ui/react';
 import React from 'react';
 //@ts-ignore
@@ -25,7 +25,7 @@ const HistoricalData = () => {
   const [clipboard, copyToClipboard] = useClipboard({ updateFrequency: 50 });
   const [isLoading, setIsLoading] = React.useState({ add: false, remove: false, get: false });
   const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: 5 });
-
+  const [isHidden, setIsHidden] = React.useState(false);
   const [freeText, setFreeText] = React.useState('')
 
   const toast = useToast();
@@ -206,7 +206,7 @@ const HistoricalData = () => {
     }
 
     return <Box>
-      <Button colorScheme='blue' isFullWidth onClick={saveUserSetting}>
+      <Button colorScheme='blue' onClick={saveUserSetting}>
         Save Setting
       </Button>
     </Box>
@@ -245,7 +245,7 @@ const HistoricalData = () => {
 
     return (
       <Box>
-        <Button colorScheme='red' isFullWidth onClick={() => setIsOpen(true)} isDisabled={data.length < 1}>
+        <Button colorScheme='red' onClick={() => setIsOpen(true)} isDisabled={data.length < 1}>
           Delete Data
         </Button>
 
@@ -269,9 +269,6 @@ const HistoricalData = () => {
             </ModalFooter>
           </ModalContent>
         </Modal>
-
-        <br />
-        <br />
       </Box>
     )
   }
@@ -279,10 +276,29 @@ const HistoricalData = () => {
 
   return (
     <>
-      <Stack direction={'row'} justifyContent={'space-around'} >
-        <RenderDeleteData data={historicalData} getData={getData} />
-        <RenderSaveUserSetting />
-      </Stack>
+      {isHidden
+        ? (
+          <Button
+            position={'absolute'} left={'10vw'} top={'10vh'}
+            onClick={() => setIsHidden(d => !d)}>
+            <AddIcon />
+          </Button>
+        )
+        : (
+          <Box>
+            <Stack direction={'row'} justifyContent={'space-around'} alignItems={'center'} mb={4}>
+              <Button
+                onClick={() => setIsHidden(d => !d)}
+                position={'absolute'} left={'10vw'} top={'90px'}>
+                <MinusIcon />
+              </Button>
+
+              <RenderDeleteData data={historicalData} getData={getData} />
+              <RenderSaveUserSetting />
+            </Stack>
+          </Box>
+        )
+      }
 
       <Textarea
         value={freeText}
