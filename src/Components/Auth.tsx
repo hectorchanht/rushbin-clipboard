@@ -1,4 +1,4 @@
-import { Button, Grid, GridItem, Input, InputGroup, InputRightElement, Stack, useToast } from '@chakra-ui/react';
+import { Button, Flex, Input, InputGroup, InputRightElement, useToast } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
 
@@ -21,25 +21,23 @@ export default function Auth() {
       setIsLoading(true)
       const { error } = await supabase.auth.signIn({ email, password });
       if (error) {
-        throw new Error(error?.message);
+        toastError(error?.message)
+
       }
-    } catch (error: any) {
-      toastError(error)
     } finally {
       setIsLoading(false)
-      window.location.reload();
+      // window.location.reload();
     }
   }
 
   const handleSignUp = async () => {
     try {
       setIsLoading(true)
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { error } = await supabase.auth.signUp({ email, password });
+
       if (error) {
-        throw new Error(error?.message);
+        toastError(error?.message)
       }
-    } catch (error: any) {
-      toastError(error)
     } finally {
       setIsLoading(false)
     }
@@ -50,89 +48,34 @@ export default function Auth() {
       setIsLoading(true)
       const { error } = await supabase.auth.signOut();
       if (error) {
-        throw new Error(error?.message);
+        toastError(error?.message)
       }
-    } catch (error: any) {
-      toastError(error)
     } finally {
       setIsLoading(false);
-      window.location.reload();
+      // window.location.reload();
     }
   }
+  const handleClick = () => setShow(!show)
 
-  const user_id = supabase.auth.user()?.id;
-
-  if (user_id) {
+  if (supabase.auth.user()?.id) {
     return (
-      <Button
-        isLoading={isLoading}
-        colorScheme='teal'
-        variant='outline'
-        onClick={handleLogout}
-      >
-        Logout
-      </Button>
+      <>
+        <Button
+          isLoading={isLoading}
+          colorScheme='teal'
+          variant='outline'
+          onClick={handleLogout}
+        >
+         Logout {supabase.auth.user()?.email}
+        </Button>
+        <br />
+      </>
     )
   }
 
-  const handleClick = () => setShow(!show)
 
   return (
-    <>
-      {/* <Grid templateColumns='repeat(2, 1fr)' gap={6}>
-        <GridItem  >
-          <Input
-            type={'text'}
-            placeholder='Enter email'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </GridItem>
-
-        <GridItem  >
-          <InputGroup size='md'>
-            <Input
-              type={show ? 'text' : 'password'}
-              placeholder='Enter password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <InputRightElement width='4.5rem'>
-              <Button h='1.75rem' size='sm' onClick={handleClick}>
-                {show ? 'Hide' : 'Show'}
-              </Button>
-            </InputRightElement>
-          </InputGroup>
-        </GridItem>
-
-
-        <GridItem  >
-          <Button
-            isLoading={isLoading}
-            colorScheme='teal'
-            variant='outline'
-            onClick={handleSignUp}
-          >
-            signup
-          </Button>
-        </GridItem>
-
-
-        <GridItem  >
-          <Button
-            isLoading={isLoading}
-            colorScheme='teal'
-            variant='outline'
-            onClick={handleLogin}
-          >
-            Login
-          </Button>
-        </GridItem>
-      </Grid> */}
-
-
-
-
+    <form>
       <InputGroup size='md'>
         <Input
           type={'text'}
@@ -154,15 +97,16 @@ export default function Auth() {
         </InputRightElement>
       </InputGroup>
 
+      <br />
 
-      {/* <Stack direction='row' spacing={6} align='center'> */}
+      <Flex justifyContent={'space-around'}>
         <Button
           isLoading={isLoading}
           colorScheme='teal'
           variant='outline'
           onClick={handleSignUp}
         >
-          signup
+          Sign up
         </Button>
         <Button
           isLoading={isLoading}
@@ -172,9 +116,7 @@ export default function Auth() {
         >
           Login
         </Button>
-      {/* </Stack> */}
-
-
-    </>
+      </Flex>
+    </form>
   )
 }
