@@ -22,7 +22,7 @@ attributes of rushbin-setting
 */
 
 const HistoricalData = () => {
-  const [historicalData, setHistoricalData] = React.useState<string[] | []>([]);
+  const [historicalData, setHistoricalData] = React.useState([]);
   const [clipboard, copyToClipboard] = useClipboard({ updateFrequency: 50 });
   const [isLoading, setIsLoading] = React.useState({ add: false, remove: false, get: false });
   const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: 5 });
@@ -31,7 +31,7 @@ const HistoricalData = () => {
 
   const toast = useToast();
 
-  const toastError = (msg: string) => toast({
+  const toastError = (msg) => toast({
     title: msg,
     status: 'error',
     isClosable: true,
@@ -64,7 +64,7 @@ const HistoricalData = () => {
     </Flex>
   );
 
-  const handleSave = async (clipText: string) => {
+  const handleSave = async (clipText) => {
     const user_id = supabase.auth.user()?.id;
 
     setIsLoading(d => ({ ...d, add: true }));
@@ -81,7 +81,7 @@ const HistoricalData = () => {
         return;
       }
 
-      const { data, error }: any = await supabase
+      const { data, error } = await supabase
         .from('rushbin-data')
         .insert([{ val: clipText, user_id }])
 
@@ -110,7 +110,7 @@ const HistoricalData = () => {
         // @ts-ignore
         dataArray = JSON.parse(localStorage.getItem("rushbin-data")).slice(start, end + 1) || [];
       } else {
-        const { data, error }: any = await supabase
+        const { data, error } = await supabase
           .from('rushbin-data')
           .select('*')
           .eq('user_id', user_id)
@@ -130,7 +130,7 @@ const HistoricalData = () => {
     }
   }
 
-  const removeItem = async (id: string) => {
+  const removeItem = async (id) => {
     setIsLoading(d => ({ ...d, remove: true }));
     const user_id = supabase.auth.user()?.id;
 
@@ -138,7 +138,7 @@ const HistoricalData = () => {
       if (!user_id) {
         // @ts-ignore
         const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
-        const data = oldData.filter((d: { id: string }) => d.id !== id);
+        const data = oldData.filter((d) => d.id !== id);
 
         localStorage.setItem("rushbin-data", JSON.stringify(data));
         return;
@@ -160,7 +160,7 @@ const HistoricalData = () => {
   }
 
   const getUserSetting = async () => {
-    let setting: any;
+    let setting;
     const user_id = supabase.auth.user()?.id;
 
     if (!user_id) {
@@ -168,7 +168,7 @@ const HistoricalData = () => {
       setting = JSON.parse(localStorage.getItem("rushbin-setting")) || {};
 
     } else {
-      const { data, error }: any = await supabase
+      const { data, error } = await supabase
         .from('rushbin-setting')
         .select('pageSize,isSettingHidden,isAuthHidden')
         .eq('user_id', user_id)
@@ -182,7 +182,7 @@ const HistoricalData = () => {
     }
 
     setPagination(d => ({ ...d, pageSize: setting.pageSize }));
-    const { isSettingHidden, isAuthHidden }: any = setting;
+    const { isSettingHidden, isAuthHidden } = setting;
     setSettingState({ isSettingHidden, isAuthHidden });
   }
 
@@ -236,7 +236,7 @@ const HistoricalData = () => {
     getData();
   }, [pagination.currentPage, pagination.pageSize]);
 
-  const RenderDeleteData = ({ getData, data }: any) => {
+  const RenderDeleteData = ({ getData, data }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const onClose = () => setIsOpen(false);
 
@@ -294,7 +294,7 @@ const HistoricalData = () => {
           <Box as={'span'} my={4}>
             <Button mr={4}
               leftIcon={<AddIcon />}
-              onClick={() => setSettingState((d: any) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
+              onClick={() => setSettingState((d) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
               setting
             </Button>
             <RenderSaveUserSetting />
@@ -302,7 +302,7 @@ const HistoricalData = () => {
         )
         : (
           <Flex justifyContent={'space-between'} my={4}>
-            <Button onClick={() => setSettingState((d: any) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
+            <Button onClick={() => setSettingState((d) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
               <MinusIcon />
             </Button>
 
@@ -346,7 +346,7 @@ const HistoricalData = () => {
         isLoading.get
           ? <RenderLoadingData />
           : <LocalGrid>
-            {historicalData.map((d: any) => (
+            {historicalData.map((d) => (
               <React.Fragment key={`${d.id}_${d.val}`}>
                 <GridItem rowSpan={1} >
                   <Button isFullWidth onClick={() => copyToClipboard(d.val)}>
@@ -384,7 +384,7 @@ const RenderLoadingData = () => <LocalGrid>
   )}
 </LocalGrid>;
 
-const LocalGrid = ({ children, ...rest }: any) => (
+const LocalGrid = ({ children, ...rest }) => (
   <Grid
     templateColumns='repeat(6, 1fr)'
     gap={3}

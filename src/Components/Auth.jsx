@@ -14,7 +14,7 @@ export default function Auth() {
 
   const [setting, setSetting] = useAtom(settingAtom);
 
-  const toastError = (msg: string) => toast({
+  const toastError = (msg) => toast({
     title: msg,
     status: 'error',
     isClosable: true,
@@ -65,7 +65,8 @@ export default function Auth() {
   if (setting?.isAuthHidden) {
     return <Button
       leftIcon={<AddIcon />} m={4}
-      onClick={() => setSetting((d: any) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}>
+      // onClick={() => setSetting()}>
+      onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}>
       Authentication
     </Button>
   }
@@ -73,7 +74,7 @@ export default function Auth() {
   if (supabase.auth.user()?.id) {
     return (
       <Flex justifyContent={'space-between'} my={4}>
-        <Button onClick={() => setSetting((d: any) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}        >
+        <Button onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}        >
           <MinusIcon />
         </Button>
 
@@ -113,7 +114,7 @@ export default function Auth() {
       </InputGroup>
 
       <Flex justifyContent={'space-between'}>
-        <Button onClick={() => setSetting((d: any) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}     >
+        <Button onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}     >
           <MinusIcon />
         </Button>
 
