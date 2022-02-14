@@ -13,7 +13,7 @@ const theme = extendTheme({ config })
 
 export const App = () => (
   <ChakraProvider theme={theme}>
-    <Container py={6} textAlign="center" fontSize="xl">
+    <Container textAlign="center" fontSize="xl">
       {/* <ColorModeSwitcher /> */}
 
       <Auth />
