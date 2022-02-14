@@ -1,6 +1,8 @@
 import { Button, Flex, Input, InputGroup, InputRightElement, useToast } from '@chakra-ui/react';
+import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import React, { useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
+
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false)
@@ -66,7 +68,7 @@ export default function Auth() {
           variant='outline'
           onClick={handleLogout}
         >
-         Logout {supabase.auth.user()?.email}
+          Logout {supabase.auth.user()?.email}
         </Button>
         <br />
       </>
@@ -92,7 +94,7 @@ export default function Auth() {
         />
         <InputRightElement width='4.5rem'>
           <Button h='1.75rem' size='sm' onClick={handleClick}>
-            {show ? 'Hide' : 'Show'}
+            {show ? <ViewOffIcon /> : <ViewIcon />}
           </Button>
         </InputRightElement>
       </InputGroup>
