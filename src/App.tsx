@@ -1,6 +1,4 @@
-import {
-  ChakraProvider, Container, extendTheme
-} from "@chakra-ui/react"
+import { ChakraProvider, Container, Divider, extendTheme } from "@chakra-ui/react"
 import * as React from "react"
 import Auth from "./Components/Auth"
 import HistoricalData from "./Components/HistoricalData"
@@ -20,6 +18,7 @@ export const App = () => (
 
       <Auth />
       <br />
+      <Divider />
       <br />
       <HistoricalData />
 
