@@ -1,5 +1,5 @@
 import { AddIcon, ArrowBackIcon, ArrowForwardIcon, DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
-import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Text, Textarea, useToast } from '@chakra-ui/react';
+import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Stack, Text, Textarea, useToast } from '@chakra-ui/react';
 import React from 'react';
 //@ts-ignore
 import useClipboard from 'react-hook-clipboard';
@@ -13,15 +13,18 @@ const user_id = supabase.auth.user()?.id
 
 if user_id exist, get/set data to supabase
 else get/set to localStorage
-*/
 
-const UserSetting = '';
+
+
+attributes of rushbin-setting
+1. pageSize
+*/
 
 const HistoricalData = () => {
   const [historicalData, setHistoricalData] = React.useState<string[] | []>([]);
   const [clipboard, copyToClipboard] = useClipboard({ updateFrequency: 50 });
   const [isLoading, setIsLoading] = React.useState({ add: false, remove: false, get: false });
-  const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: 5, canNextPage: false });
+  const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: 5 });
 
   const [freeText, setFreeText] = React.useState('')
 
@@ -34,7 +37,7 @@ const HistoricalData = () => {
   });
 
   const PaginationTool = () => (
-    <Flex>
+    <Flex >
       <Button
         colorScheme='pink' variant='solid'
         isDisabled={pagination.currentPage <= 1}
@@ -44,6 +47,7 @@ const HistoricalData = () => {
       </Button>
 
       <Select
+        value={pagination.pageSize}
         placeholder={`page size: ${pagination.pageSize}`}
         onChange={(e) => setPagination(d => ({ ...d, pageSize: Number(e.target.value) }))}>
         {[5, 10, 20, 50, 100].map(d => <option key={d} value={d}>{d}</option>)}
@@ -60,9 +64,10 @@ const HistoricalData = () => {
   );
 
   const handleSave = async (clipText: string) => {
+    const user_id = supabase.auth.user()?.id;
+
     setIsLoading(d => ({ ...d, add: true }));
     try {
-      const user_id = supabase.auth.user()?.id;
       if (!user_id) {
         // @ts-ignore
         const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
@@ -90,9 +95,9 @@ const HistoricalData = () => {
   };
 
   const getData = async () => {
+    setIsLoading(d => ({ ...d, get: true }))
     let dataArray = [];
     const user_id = supabase.auth.user()?.id;
-    setIsLoading(d => ({ ...d, get: true }))
 
     const
       start = (pagination.currentPage * pagination.pageSize) - pagination.pageSize,
@@ -126,10 +131,9 @@ const HistoricalData = () => {
 
   const removeItem = async (id: string) => {
     setIsLoading(d => ({ ...d, remove: true }));
+    const user_id = supabase.auth.user()?.id;
 
     try {
-      const user_id = supabase.auth.user()?.id;
-
       if (!user_id) {
         // @ts-ignore
         const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
@@ -154,10 +158,63 @@ const HistoricalData = () => {
     }
   }
 
+  const getUserSetting = async () => {
+    let setting: any;
+    const user_id = supabase.auth.user()?.id;
+
+    if (!user_id) {
+      // @ts-ignore
+      setting = JSON.parse(localStorage.getItem("rushbin-setting")) || {};
+
+    } else {
+      const { data, error }: any = await supabase
+        .from('rushbin-setting')
+        .select('pageSize')
+        .eq('user_id', user_id)
+        .single();
+
+      if (error) {
+        toastError(error.message);
+        return
+      }
+      setting = data;
+    }
+
+    setPagination(d => ({ ...d, ...setting }))
+  }
+
+  const RenderSaveUserSetting = () => {
+    const saveUserSetting = async () => {
+      let setting;
+      const user_id = supabase.auth.user()?.id;
+
+      if (!user_id) {
+        // @ts-ignore
+        setting = localStorage.setItem("rushbin-setting", JSON.stringify({ pageSize: pagination.pageSize }));
+      } else {
+        const { data, error } = await supabase
+          .from('rushbin-setting')
+          .upsert({ pageSize: pagination.pageSize, user_id }, { onConflict: 'user_id' })
+
+        if (error) {
+          toastError(error.message);
+          return
+        }
+      }
+    }
+
+    return <Box>
+      <Button colorScheme='blue' isFullWidth onClick={saveUserSetting}>
+        Save Setting
+      </Button>
+    </Box>
+  }
+
   React.useEffect(() => {
     supabase.auth.onAuthStateChange(() => {
       getData();
     });
+    getUserSetting();
   }, []);
 
   React.useEffect(() => {
@@ -220,7 +277,10 @@ const HistoricalData = () => {
 
   return (
     <>
-      <RenderDeleteData data={historicalData} getData={getData} />
+      <Stack direction={'row'} justifyContent={'space-around'} >
+        <RenderDeleteData data={historicalData} getData={getData} />
+        <RenderSaveUserSetting />
+      </Stack>
 
       <Textarea
         value={freeText}
