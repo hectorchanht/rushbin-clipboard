@@ -1,5 +1,5 @@
 import { AddIcon, ArrowBackIcon, ArrowForwardIcon, DeleteIcon, DownloadIcon, MinusIcon } from '@chakra-ui/icons';
-import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Stack, Text, Textarea, useToast } from '@chakra-ui/react';
+import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Text, Textarea, useToast } from '@chakra-ui/react';
 import { useAtom } from 'jotai';
 import React from 'react';
 //@ts-ignore
@@ -27,7 +27,7 @@ const HistoricalData = () => {
   const [isLoading, setIsLoading] = React.useState({ add: false, remove: false, get: false });
   const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: 5 });
   const [freeText, setFreeText] = React.useState('')
-  const [setting, setSetting] = useAtom(settingAtom);
+  const [settingState, setSettingState] = useAtom(settingAtom);
 
   const toast = useToast();
 
@@ -170,7 +170,7 @@ const HistoricalData = () => {
     } else {
       const { data, error }: any = await supabase
         .from('rushbin-setting')
-        .select('pageSize')
+        .select('pageSize,isSettingHidden,isAuthHidden')
         .eq('user_id', user_id)
         .single();
 
@@ -181,7 +181,9 @@ const HistoricalData = () => {
       setting = data;
     }
 
-    setPagination(d => ({ ...d, ...setting }))
+    setPagination(d => ({ ...d, pageSize: setting.pageSize }));
+    const { isSettingHidden, isAuthHidden }: any = setting;
+    setSettingState({ isSettingHidden, isAuthHidden });
   }
 
   const RenderSaveUserSetting = () => {
@@ -191,26 +193,26 @@ const HistoricalData = () => {
 
       if (!user_id) {
         // @ts-ignore
-        setting = localStorage.setItem("rushbin-setting", JSON.stringify({ pageSize: pagination.pageSize }));
+        setting = localStorage.setItem("rushbin-setting", JSON.stringify({ pageSize: pagination.pageSize, ...settingState }));
       } else {
         try {
+          console.log(` HistoricalData.tsx --- settingState:`, settingState)
+
           const { error } = await supabase
             .from('rushbin-setting')
-            .update({ pageSize: pagination.pageSize })
+            .update({ pageSize: pagination.pageSize, ...settingState })
             .eq('user_id', user_id)
         } catch (e) {
           const { error } = await supabase
             .from('rushbin-setting')
-            .insert([{ pageSize: pagination.pageSize }], { upsert: true })
+            .insert([{ pageSize: pagination.pageSize, ...settingState }], { upsert: true })
         }
       }
     }
 
-    return <Box>
-      <Button colorScheme='blue' onClick={saveUserSetting}>
-        Save Setting
-      </Button>
-    </Box>
+    return <Button colorScheme='blue' onClick={saveUserSetting}>
+      Save Setting
+    </Button>
   }
 
   React.useEffect(() => {
@@ -277,23 +279,26 @@ const HistoricalData = () => {
 
   return (
     <>
-      {setting?.isSettingHidden
+      {settingState?.isSettingHidden
         ? (
-          <Button
-            leftIcon={<AddIcon />} my={4}
-            onClick={() => setSetting((d: any) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
-            setting
-          </Button>
+          <Box as={'span'} my={4}>
+            <Button mr={4}
+              leftIcon={<AddIcon />}
+              onClick={() => setSettingState((d: any) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
+              setting
+            </Button>
+            <RenderSaveUserSetting />
+          </Box>
         )
         : (
-            <Flex justifyContent={'space-between'} my={4}>
-              <Button onClick={() => setSetting((d: any) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
-                <MinusIcon />
-              </Button>
+          <Flex justifyContent={'space-between'} my={4}>
+            <Button onClick={() => setSettingState((d: any) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
+              <MinusIcon />
+            </Button>
 
-              <RenderDeleteData data={historicalData} getData={getData} />
-              <RenderSaveUserSetting />
-            </Flex>
+            <RenderDeleteData data={historicalData} getData={getData} />
+            <RenderSaveUserSetting />
+          </Flex>
         )
       }
 
