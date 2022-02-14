@@ -194,6 +194,7 @@ const HistoricalData = () => {
       if (!user_id) {
         // @ts-ignore
         setting = localStorage.setItem("rushbin-setting", JSON.stringify({ pageSize: pagination.pageSize, ...settingState }));
+        toast({ title: 'Saved success', status: 'success' });
       } else {
         try {
           console.log(` HistoricalData.tsx --- settingState:`, settingState)
@@ -201,13 +202,22 @@ const HistoricalData = () => {
           const { error } = await supabase
             .from('rushbin-setting')
             .update({ pageSize: pagination.pageSize, ...settingState })
-            .eq('user_id', user_id)
+            .eq('user_id', user_id);
+          toast({ title: 'Saved success', status: 'success' });
+
         } catch (e) {
           const { error } = await supabase
             .from('rushbin-setting')
-            .insert([{ pageSize: pagination.pageSize, ...settingState }], { upsert: true })
+            .insert([{ pageSize: pagination.pageSize, ...settingState }], { upsert: true });
+          if (error) {
+            toastError(error.message)
+            return;
+          }
+          toast({ title: 'Saved success', status: 'success' });
+
         }
       }
+
     }
 
     return <Button colorScheme='blue' onClick={saveUserSetting}>
