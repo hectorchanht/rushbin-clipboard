@@ -16,6 +16,7 @@
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
     "framer-motion": "^4.0.0",
+    "jotai": "^1.6.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-hook-clipboard": "^1.0.3",
