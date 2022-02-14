@@ -1,7 +1,9 @@
 import { AddIcon, MinusIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex, Input, InputGroup, InputRightElement, useToast } from '@chakra-ui/react';
+import { useAtom } from 'jotai';
 import React, { useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
+import { settingAtom } from '../states';
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false)
@@ -10,7 +12,7 @@ export default function Auth() {
   const [show, setShow] = React.useState(false)
   const toast = useToast();
 
-  const [isHidden, setIsHidden] = useState(false);
+  const [setting, setSetting] = useAtom(settingAtom);
 
   const toastError = (msg: string) => toast({
     title: msg,
@@ -60,17 +62,21 @@ export default function Auth() {
   }
   const handleClick = () => setShow(!show);
 
-  if (isHidden) {
+  if (setting?.isAuthHidden) {
     return <Button
-      onClick={() => setIsHidden(d => !d)}
-      position={'absolute'} left={'10vw'}>
-      <AddIcon />
+      leftIcon={<AddIcon />} m={4}
+      onClick={() => setSetting((d: any) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}>
+      Authentication
     </Button>
   }
 
   if (supabase.auth.user()?.id) {
     return (
-      <Box>
+      <Flex justifyContent={'space-between'} my={4}>
+        <Button onClick={() => setSetting((d: any) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}        >
+          <MinusIcon />
+        </Button>
+
         <Button
           isLoading={isLoading}
           colorScheme='teal'
@@ -79,66 +85,55 @@ export default function Auth() {
         >
           Logout {supabase.auth.user()?.email}
         </Button>
-
-        <Button
-          onClick={() => setIsHidden(d => !d)}
-          position={'absolute'} left={'10vw'}>
-          <MinusIcon />
-        </Button>
-        <br />
-      </Box>
+      </Flex>
     )
   }
 
-
   return (
-    <>
-      <Button
-        onClick={() => setIsHidden(d => !d)}
-        position={'absolute'} left={'10vw'}>
-        <MinusIcon />
-      </Button>
-      <Box as={'form'} mb={4}>
-        <InputGroup size='md' mb={4}>
-          <Input
-            type={'text'}
-            placeholder='Enter Email'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+    <Box as={'form'} my={4}>
+      <InputGroup size='md' mb={4}>
+        <Input
+          type={'text'}
+          placeholder='Enter Email'
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-          <Input
-            type={show ? 'text' : 'password'}
-            placeholder='Enter Password'
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <InputRightElement width='4.5rem'>
-            <Button h='1.75rem' size='sm' onClick={handleClick}>
-              {show ? <ViewOffIcon /> : <ViewIcon />}
-            </Button>
-          </InputRightElement>
-        </InputGroup>
+        <Input
+          type={show ? 'text' : 'password'}
+          placeholder='Enter Password'
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <InputRightElement width='4.5rem'>
+          <Button h='1.75rem' size='sm' onClick={handleClick}>
+            {show ? <ViewOffIcon /> : <ViewIcon />}
+          </Button>
+        </InputRightElement>
+      </InputGroup>
 
-        <Flex justifyContent={'space-around'}>
-          <Button
-            isLoading={isLoading}
-            colorScheme='teal'
-            variant='outline'
-            onClick={handleSignUp}
-          >
-            Sign up
-          </Button>
-          <Button
-            isLoading={isLoading}
-            colorScheme='teal'
-            variant='outline'
-            onClick={handleLogin}
-          >
-            Login
-          </Button>
-        </Flex>
-      </Box>
-    </>
+      <Flex justifyContent={'space-between'}>
+        <Button onClick={() => setSetting((d: any) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}     >
+          <MinusIcon />
+        </Button>
+
+        <Button
+          isLoading={isLoading}
+          colorScheme='teal'
+          variant='outline'
+          onClick={handleSignUp}
+        >
+          Sign up
+        </Button>
+        <Button
+          isLoading={isLoading}
+          colorScheme='teal'
+          variant='outline'
+          onClick={handleLogin}
+        >
+          Login
+        </Button>
+      </Flex>
+    </Box>
   )
 }

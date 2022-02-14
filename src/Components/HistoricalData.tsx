@@ -1,10 +1,11 @@
 import { AddIcon, ArrowBackIcon, ArrowForwardIcon, DeleteIcon, DownloadIcon, MinusIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Stack, Text, Textarea, useToast } from '@chakra-ui/react';
+import { useAtom } from 'jotai';
 import React from 'react';
 //@ts-ignore
 import useClipboard from 'react-hook-clipboard';
 import { supabase } from '../libs/supabaseClient';
-
+import { settingAtom } from '../states';
 
 /*
 logic:
@@ -25,8 +26,8 @@ const HistoricalData = () => {
   const [clipboard, copyToClipboard] = useClipboard({ updateFrequency: 50 });
   const [isLoading, setIsLoading] = React.useState({ add: false, remove: false, get: false });
   const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: 5 });
-  const [isHidden, setIsHidden] = React.useState(false);
   const [freeText, setFreeText] = React.useState('')
+  const [setting, setSetting] = useAtom(settingAtom);
 
   const toast = useToast();
 
@@ -276,27 +277,23 @@ const HistoricalData = () => {
 
   return (
     <>
-      {isHidden
+      {setting?.isSettingHidden
         ? (
           <Button
-            position={'absolute'} left={'10vw'} top={'10vh'}
-            onClick={() => setIsHidden(d => !d)}>
-            <AddIcon />
+            leftIcon={<AddIcon />} my={4}
+            onClick={() => setSetting((d: any) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
+            setting
           </Button>
         )
         : (
-          <Box>
-            <Stack direction={'row'} justifyContent={'space-around'} alignItems={'center'} mb={4}>
-              <Button
-                onClick={() => setIsHidden(d => !d)}
-                position={'absolute'} left={'10vw'} top={'90px'}>
+            <Flex justifyContent={'space-between'} my={4}>
+              <Button onClick={() => setSetting((d: any) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
                 <MinusIcon />
               </Button>
 
               <RenderDeleteData data={historicalData} getData={getData} />
               <RenderSaveUserSetting />
-            </Stack>
-          </Box>
+            </Flex>
         )
       }
 
