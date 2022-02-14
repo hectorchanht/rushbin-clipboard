@@ -165,7 +165,7 @@ const HistoricalData = () => {
 
     if (!user_id) {
       // @ts-ignore
-      setting = JSON.parse(localStorage.getItem("rushbin-setting")) || {};
+      setting = JSON.parse(localStorage.getItem("rushbin-setting")) || { pageSize: 5, isSettingHidden: false, isAuthHidden: false };
 
     } else {
       const { data, error } = await supabase
