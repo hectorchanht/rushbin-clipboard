@@ -192,13 +192,15 @@ const HistoricalData = () => {
         // @ts-ignore
         setting = localStorage.setItem("rushbin-setting", JSON.stringify({ pageSize: pagination.pageSize }));
       } else {
-        const { data, error } = await supabase
-          .from('rushbin-setting')
-          .upsert({ pageSize: pagination.pageSize, user_id }, { onConflict: 'user_id' })
-
-        if (error) {
-          toastError(error.message);
-          return
+        try {
+          const { error } = await supabase
+            .from('rushbin-setting')
+            .update({ pageSize: pagination.pageSize })
+            .eq('user_id', user_id)
+        } catch (e) {
+          const { error } = await supabase
+            .from('rushbin-setting')
+            .insert([{ pageSize: pagination.pageSize }], { upsert: true })
         }
       }
     }
