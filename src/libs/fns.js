@@ -19,7 +19,7 @@ export const getData = async ({ currentPage, pageSize }) => {
   let dataArray = [];
 
   const
-    user_id = await supabase.auth.user()?.id,
+    user_id = supabase.auth.user()?.id,
     start = (currentPage * pageSize) - pageSize,
     end = (currentPage * pageSize) - 1;
 
@@ -34,7 +34,7 @@ export const getData = async ({ currentPage, pageSize }) => {
 
     dataArray = data
   }
-  // console.log(` fns.js --- dataArray:`, { dataArray, currentPage, pageSize, start, end });
+  // console.log(` fns.js ---:`, { currentPage, pageSize, start, end, dataArray });
   return dataArray;
 }
 
@@ -58,7 +58,7 @@ export const postData = async (val) => {
   }
 };
 
-export const removeItem = async (id) => {
+export const deleteData = async (id) => {
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
@@ -91,15 +91,17 @@ export const useData = () => {
 
   useEffect(async () => {
     if (currentPage < 1 || pageSize < 1) return;
+    if (isLoading.get)  return; 
 
     setIsLoading(d => ({ ...d, get: true }));
     const newData = await getData(setting);
     setData(newData);
+
     setIsLoading(d => ({ ...d, get: false }));
     // console.log(` fns.js --- {setting.currentPage, setting.pageSize, update}:`, { currentPage, pageSize, updateCounter, newData })
   }, [currentPage, pageSize, updateCounter]);
 
-  return { updateData, data, setData, isLoading, setIsLoading, setting, setSetting, toast, toastError }
+  return { updateData, updateCounter, data, setData, isLoading, setIsLoading, setting, setSetting, toast, toastError }
 };
 
 export const getSettingData = async (setting = DEFAULT_SETTING) => {
