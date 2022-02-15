@@ -3,7 +3,7 @@ import { useToast } from '@chakra-ui/react';
 import { useAtom } from 'jotai';
 import { useEffect, useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
-import { clipDataAtom, DEFAULT_SETTING, loadingAtom, settingAtom } from './states';
+import { clipDataAtom, DEFAULT_SETTING, loadingAtom, settingAtom, DEFAULT_PAGE_SIZE } from './states';
 
 export const validateEmail = (email) => {
   return String(email)
@@ -14,8 +14,14 @@ export const validateEmail = (email) => {
 };
 
 export const getData = async ({ currentPage, pageSize }) => {
-  if (!currentPage) throw new Error('need currentPage')
-  if (!pageSize) throw new Error('need pageSize')
+  if (!currentPage) {
+    currentPage = 1;
+    // throw new Error('need currentPage')
+  }
+  if (!pageSize) {
+    pageSize = DEFAULT_PAGE_SIZE
+    // throw new Error('need pageSize')
+  }
   let dataArray = [];
 
   const
@@ -91,7 +97,7 @@ export const useData = () => {
 
   useEffect(async () => {
     if (currentPage < 1 || pageSize < 1) return;
-    if (isLoading.get)  return; 
+    if (isLoading.get) return;
 
     setIsLoading(d => ({ ...d, get: true }));
     const newData = await getData(setting);
@@ -104,28 +110,18 @@ export const useData = () => {
   return { updateData, updateCounter, data, setData, isLoading, setIsLoading, setting, setSetting, toast, toastError }
 };
 
-export const getSettingData = async (setting = DEFAULT_SETTING) => {
-  let s = setting;
+export const getSettingData = async () => {
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
-    s = JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
+    return JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
   } else {
     const { data, error } = await supabase.from('rushbin-setting').select('*').eq('user_id', user_id).single();
-
+    console.log({ data, error })
     if (!data) {
-      return s
+      return DEFAULT_SETTING
     } else {
-      s = data;
-    }
-
-    if (error) {
-      // occurs if `rushbin-setting`.rows === 0
-      if (error.message !== "JSON object requested, multiple (or no) rows returned") {
-        throw new Error(error.message);
-      }
+      return data;
     }
   }
-
-  return s;
 };
