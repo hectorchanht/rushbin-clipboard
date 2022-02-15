@@ -1,8 +1,11 @@
-import { ChakraProvider, Container, extendTheme } from "@chakra-ui/react"
-import * as React from "react"
-import Auth from "./Components/Auth"
-import HistoricalData from "./Components/HistoricalData"
-
+import { ChakraProvider, Container, extendTheme } from "@chakra-ui/react";
+import * as React from "react";
+import Auth from "./Components/Auth";
+import ClipboardList from "./Components/ClipboardList";
+import PaginationTool from "./Components/PaginationTool";
+import PostFromClipboard from "./Components/PostFromClipboard";
+import PostFromText from './Components/PostFromText';
+import Toolbar from "./Components/Toolbar";
 
 const config = {
   initialColorMode: "dark",
@@ -17,7 +20,11 @@ export const App = () => (
       {/* <ColorModeSwitcher /> */}
 
       <Auth />
-      <HistoricalData />
+      <Toolbar />
+      <PostFromText />
+      <PostFromClipboard />
+      <PaginationTool />
+      <ClipboardList />
 
     </Container>
   </ChakraProvider>
