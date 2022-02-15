@@ -10,16 +10,6 @@ const AccountIcon = (props) => <Icon viewBox='0 0 20 20' {...props}>
 </Icon>;
 
 
-const CircleIcon = (props) => (
-  <Icon viewBox='0 0 200 200' {...props}>
-    <path
-
-      d='M 100, 100 m -75, 0 a 75,75 0 1,0 150,0 a 75,75 0 1,0 -150,0'
-    />
-  </Icon>
-)
-
-
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
