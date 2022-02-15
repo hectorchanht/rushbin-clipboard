@@ -2,7 +2,7 @@ import { CopyIcon, DeleteIcon } from '@chakra-ui/icons';
 import { Button, Grid, GridItem, Skeleton, Textarea } from '@chakra-ui/react';
 import React from 'react';
 import useClipboard from 'react-hook-clipboard';
-import { removeItem, useData } from '../libs/fns';
+import { deleteData, useData } from '../libs/fns';
 
 const LocalGrid = ({ children, ...rest }) => (
   <Grid
@@ -53,7 +53,7 @@ const ClipboardList = () => {
             <Button
               onClick={async () => {
                 setIsLoading(d => ({ ...d, delete: true }));
-                await removeItem(d.id);
+                await deleteData(d.id);
                 updateData();
                 setIsLoading(d => ({ ...d, delete: false }));
               }}
