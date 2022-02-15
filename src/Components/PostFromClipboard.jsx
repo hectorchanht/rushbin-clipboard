@@ -5,7 +5,7 @@ import useClipboard from 'react-hook-clipboard';
 import { postData, useData } from '../libs/fns';
 
 const PostFromClipboard = () => {
-  const [clipboard] = useClipboard({ updateFrequency: 50 });
+  const [clipboard] = useClipboard({ updateFrequency: 64 });
   const { updateData, isLoading, setIsLoading, toastError } = useData();
 
 

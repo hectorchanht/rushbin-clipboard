@@ -36,7 +36,7 @@ const RenderLoadingData = (props) => (
 
 
 const ClipboardList = () => {
-  const [, copyToClipboard] = useClipboard({ updateFrequency: 50 });
+  const [, copyToClipboard] = useClipboard({ updateFrequency: 64 });
   const { updateData, data, isLoading, setIsLoading } = useData();
 
   return isLoading.get
