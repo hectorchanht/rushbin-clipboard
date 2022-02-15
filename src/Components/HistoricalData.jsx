@@ -2,7 +2,6 @@ import { AddIcon, ArrowBackIcon, ArrowForwardIcon, CheckIcon, CloseIcon, CopyIco
 import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Text, Textarea, useToast } from '@chakra-ui/react';
 import { useAtom } from 'jotai';
 import React from 'react';
-//@ts-ignore
 import useClipboard from 'react-hook-clipboard';
 import { supabase } from '../libs/supabaseClient';
 import { settingAtom } from '../states';
@@ -71,9 +70,7 @@ const HistoricalData = () => {
     setIsLoading(d => ({ ...d, add: true }));
     try {
       if (!user_id) {
-        // @ts-ignore
         const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
-        // @ts-ignore
         const incrementalId = JSON.parse(localStorage.getItem("incremental-id")) || 0;
         const data = [{ id: incrementalId, created_at: new Date(), val: clipText, user_id: 'localStorage' }, ...oldData];
         localStorage.setItem("rushbin-data", JSON.stringify(data));
@@ -108,7 +105,7 @@ const HistoricalData = () => {
 
     try {
       if (!user_id) {
-        // @ts-ignore
+        // 
         dataArray = JSON.parse(localStorage.getItem("rushbin-data")).slice(start, end + 1) || [];
       } else {
         const { data, error } = await supabase
@@ -137,7 +134,6 @@ const HistoricalData = () => {
 
     try {
       if (!user_id) {
-        // @ts-ignore
         const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
         const data = oldData.filter((d) => d.id !== id);
 
@@ -165,7 +161,6 @@ const HistoricalData = () => {
     const user_id = supabase.auth.user()?.id;
 
     if (!user_id) {
-      // @ts-ignore
       setting = JSON.parse(localStorage.getItem("rushbin-setting")) || { pageSize: DEFAULT_PAGE_SIZE, isSettingHidden: false, isAuthHidden: false };
     } else {
       const { data, error } = await supabase
@@ -199,35 +194,29 @@ const HistoricalData = () => {
       const user_id = supabase.auth.user()?.id;
 
       if (!user_id) {
-        // @ts-ignore
         localStorage.setItem("rushbin-setting", JSON.stringify({ pageSize: pagination.pageSize || DEFAULT_PAGE_SIZE, ...settingState }));
         toast({ title: 'Setting Saved', status: 'success' });
       } else {
         try {
-          console.log(` HistoricalData.tsx --- settingState:`, settingState)
-
           const { error } = await supabase
             .from('rushbin-setting')
             .update({ pageSize: pagination.pageSize, ...settingState })
             .eq('user_id', user_id);
           if (error) {
-            toastError(error.message)
-            return;
+            throw new Error();  // try it again in the catch part
           } else {
             toast({ title: 'Setting Saved', status: 'success' });
           }
-
         } catch (e) {
           const { error } = await supabase
             .from('rushbin-setting')
-            .insert([{ pageSize: pagination.pageSize, ...settingState }], { upsert: true });
+            .insert([{ user_id, pageSize: pagination.pageSize, ...settingState }], { upsert: true });
           if (error) {
             toastError(error.message)
             return;
           } else {
             toast({ title: 'Setting Saved', status: 'success' });
           }
-
         }
       }
 
