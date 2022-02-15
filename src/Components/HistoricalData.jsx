@@ -1,4 +1,4 @@
-import { AddIcon, ArrowBackIcon, ArrowForwardIcon, DeleteIcon, DownloadIcon, MinusIcon } from '@chakra-ui/icons';
+import { AddIcon, ArrowBackIcon, ArrowForwardIcon, CheckIcon, CloseIcon, CopyIcon, DeleteIcon, MinusIcon, SettingsIcon, StarIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex, Grid, GridItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Skeleton, Text, Textarea, useToast } from '@chakra-ui/react';
 import { useAtom } from 'jotai';
 import React from 'react';
@@ -21,11 +21,13 @@ attributes of rushbin-setting
 1. pageSize
 */
 
+const DEFAULT_PAGE_SIZE = 10;
+
 const HistoricalData = () => {
   const [historicalData, setHistoricalData] = React.useState([]);
   const [clipboard, copyToClipboard] = useClipboard({ updateFrequency: 50 });
   const [isLoading, setIsLoading] = React.useState({ add: false, remove: false, get: false });
-  const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: 5 });
+  const [pagination, setPagination] = React.useState({ currentPage: 1, pageSize: DEFAULT_PAGE_SIZE });
   const [freeText, setFreeText] = React.useState('')
   const [settingState, setSettingState] = useAtom(settingAtom);
 
@@ -48,9 +50,8 @@ const HistoricalData = () => {
       </Button>
 
       <Select
-        value={pagination.pageSize}
         placeholder={`page size: ${pagination.pageSize}`}
-        onChange={(e) => setPagination(d => ({ ...d, pageSize: Number(e.target.value) }))}>
+        onChange={(e) => e.target.value >= 0 && setPagination(d => ({ ...d, pageSize: Number(e.target.value) }))}>
         {[5, 10, 20, 50, 100].map(d => <option key={d} value={d}>{d}</option>)}
       </Select>
 
@@ -165,20 +166,27 @@ const HistoricalData = () => {
 
     if (!user_id) {
       // @ts-ignore
-      setting = JSON.parse(localStorage.getItem("rushbin-setting")) || { pageSize: 5, isSettingHidden: false, isAuthHidden: false };
-
+      setting = JSON.parse(localStorage.getItem("rushbin-setting")) || { pageSize: DEFAULT_PAGE_SIZE, isSettingHidden: false, isAuthHidden: false };
     } else {
       const { data, error } = await supabase
         .from('rushbin-setting')
-        .select('pageSize,isSettingHidden,isAuthHidden')
+        .select('*')
         .eq('user_id', user_id)
         .single();
 
+      if (!data) {
+        setting = { pageSize: DEFAULT_PAGE_SIZE, isSettingHidden: false, isAuthHidden: false }
+      } else {
+        setting = data;
+      }
+
       if (error) {
-        toastError(error.message);
+        // occurs if `rushbin-setting`.rows === 0
+        if (!error.message === "JSON object requested, multiple (or no) rows returned") {
+          toastError(error.message);
+        }
         return
       }
-      setting = data;
     }
 
     setPagination(d => ({ ...d, pageSize: setting.pageSize }));
@@ -188,13 +196,12 @@ const HistoricalData = () => {
 
   const RenderSaveUserSetting = () => {
     const saveUserSetting = async () => {
-      let setting;
       const user_id = supabase.auth.user()?.id;
 
       if (!user_id) {
         // @ts-ignore
-        setting = localStorage.setItem("rushbin-setting", JSON.stringify({ pageSize: pagination.pageSize, ...settingState }));
-        toast({ title: 'Saved success', status: 'success' });
+        localStorage.setItem("rushbin-setting", JSON.stringify({ pageSize: pagination.pageSize || DEFAULT_PAGE_SIZE, ...settingState }));
+        toast({ title: 'Setting Saved', status: 'success' });
       } else {
         try {
           console.log(` HistoricalData.tsx --- settingState:`, settingState)
@@ -203,7 +210,12 @@ const HistoricalData = () => {
             .from('rushbin-setting')
             .update({ pageSize: pagination.pageSize, ...settingState })
             .eq('user_id', user_id);
-          toast({ title: 'Saved success', status: 'success' });
+          if (error) {
+            toastError(error.message)
+            return;
+          } else {
+            toast({ title: 'Setting Saved', status: 'success' });
+          }
 
         } catch (e) {
           const { error } = await supabase
@@ -212,8 +224,9 @@ const HistoricalData = () => {
           if (error) {
             toastError(error.message)
             return;
+          } else {
+            toast({ title: 'Setting Saved', status: 'success' });
           }
-          toast({ title: 'Saved success', status: 'success' });
 
         }
       }
@@ -221,7 +234,7 @@ const HistoricalData = () => {
     }
 
     return <Button colorScheme='blue' onClick={saveUserSetting}>
-      Save Setting
+      <StarIcon />
     </Button>
   }
 
@@ -259,25 +272,25 @@ const HistoricalData = () => {
     return (
       <Box>
         <Button colorScheme='red' onClick={() => setIsOpen(true)} isDisabled={data.length < 1}>
-          Delete Data
+          <DeleteIcon />
         </Button>
 
         <Modal isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Delete Data</ModalHeader>
+            <ModalHeader>Reset Data</ModalHeader>
             <ModalBody>
               <Text>
-                are you sure to delete all data?
+                Are you sure to delete all data {supabase.auth.user()?.id ? 'online' : 'locally'}?
               </Text>
             </ModalBody>
 
             <ModalFooter>
               <Button onClick={onClose}>
-                No
+                <CloseIcon />
               </Button>
               <Button colorScheme='red' ml={3} onClick={handleClearData}>
-                Yes
+                <CheckIcon />
               </Button>
             </ModalFooter>
           </ModalContent>
@@ -286,16 +299,14 @@ const HistoricalData = () => {
     )
   }
 
-
   return (
     <>
       {settingState?.isSettingHidden
         ? (
           <Box as={'span'} my={4}>
-            <Button mr={4}
-              leftIcon={<AddIcon />}
+            <Button mx={4} colorScheme={'blue'}
               onClick={() => setSettingState((d) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
-              setting
+              <SettingsIcon />
             </Button>
             <RenderSaveUserSetting />
           </Box>
@@ -312,7 +323,7 @@ const HistoricalData = () => {
         )
       }
 
-      <Textarea
+      <Textarea mt={4}
         value={freeText}
         onChange={(e) => setFreeText(e.target.value)}
         placeholder='Text Box'
@@ -350,7 +361,7 @@ const HistoricalData = () => {
               <React.Fragment key={`${d.id}_${d.val}`}>
                 <GridItem rowSpan={1} >
                   <Button isFullWidth onClick={() => copyToClipboard(d.val)}>
-                    <DownloadIcon />
+                    <CopyIcon />
                   </Button>
                 </GridItem>
                 <GridItem colSpan={1} >

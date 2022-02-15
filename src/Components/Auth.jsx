@@ -1,9 +1,24 @@
-import { AddIcon, MinusIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-import { Box, Button, Flex, Input, InputGroup, InputRightElement, useToast } from '@chakra-ui/react';
+import { MinusIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
+import { Box, Button, Flex, Icon, Input, InputGroup, InputRightElement, useToast } from '@chakra-ui/react';
 import { useAtom } from 'jotai';
 import React, { useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
 import { settingAtom } from '../states';
+
+const AccountIcon = (props) => <Icon viewBox='0 0 20 20' {...props}>
+  <path fill='currentColor' d="M3 5v14a2 2 0 002 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5a2 2 0 00-2 2zm12 4c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm-9 8c0-2 4-3.1 6-3.1s6 1.1 6 3.1v1H6v-1z"></path>
+</Icon>;
+
+
+const CircleIcon = (props) => (
+  <Icon viewBox='0 0 200 200' {...props}>
+    <path
+
+      d='M 100, 100 m -75, 0 a 75,75 0 1,0 150,0 a 75,75 0 1,0 -150,0'
+    />
+  </Icon>
+)
+
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false)
@@ -23,11 +38,13 @@ export default function Auth() {
 
   const handleLogin = async () => {
     try {
-      setIsLoading(true)
-      const { error } = await supabase.auth.signIn({ email, password });
+      setIsLoading(true);
+
+      const cred = password.length ? { email, password } : { email };
+      const { error } = await supabase.auth.signIn(cred);
+
       if (error) {
         toastError(error?.message)
-
       }
     } finally {
       setIsLoading(false)
@@ -63,11 +80,9 @@ export default function Auth() {
   const handleClick = () => setShow(!show);
 
   if (setting?.isAuthHidden) {
-    return <Button
-      leftIcon={<AddIcon />} m={4}
-      // onClick={() => setSetting()}>
+    return <Button colorScheme={'blue'}
       onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}>
-      Authentication
+      <AccountIcon />
     </Button>
   }
 
@@ -91,26 +106,29 @@ export default function Auth() {
   }
 
   return (
-    <Box as={'form'} my={4}>
+    <Box as={'form'} mb={4}>
       <InputGroup size='md' mb={4}>
         <Input
-          type={'text'}
+          autoComplete
+          type={'email'}
           placeholder='Enter Email'
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <Input
-          type={show ? 'text' : 'password'}
-          placeholder='Enter Password'
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <InputRightElement width='4.5rem'>
-          <Button h='1.75rem' size='sm' onClick={handleClick}>
-            {show ? <ViewOffIcon /> : <ViewIcon />}
-          </Button>
-        </InputRightElement>
+        {validateEmail(email) && <>
+          <Input
+            type={show ? 'text' : 'password'}
+            placeholder='Enter Password'
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <InputRightElement width='4.5rem'>
+            <Button h='1.75rem' size='sm' onClick={handleClick}>
+              {show ? <ViewOffIcon /> : <ViewIcon />}
+            </Button>
+          </InputRightElement>
+        </>}
       </InputGroup>
 
       <Flex justifyContent={'space-between'}>
@@ -122,19 +140,29 @@ export default function Auth() {
           isLoading={isLoading}
           colorScheme='teal'
           variant='outline'
-          onClick={handleSignUp}
+          onClick={password.length ? handleSignUp : handleLogin}
+          isDisabled={!validateEmail(email)}
         >
-          Sign up
+          {password.length ? 'Sign Up' : 'Magic Login'}
         </Button>
-        <Button
+        {password && <Button
           isLoading={isLoading}
           colorScheme='teal'
           variant='outline'
           onClick={handleLogin}
+          isDisabled={!validateEmail(email) && password}
         >
           Login
-        </Button>
+        </Button>}
       </Flex>
     </Box>
   )
 }
+
+const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
