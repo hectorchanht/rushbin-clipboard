@@ -23,10 +23,10 @@ const PostFromText = () => {
         setIsLoading(d => ({ ...d, post: false }));
       }}
       isLoading={isLoading.post}
-      rightIcon={<AddIcon />}
+      // rightIcon={<AddIcon />}
       colorScheme='teal'
       variant='solid'>
-      Save from Text Box
+      Save Text
     </Button>
   </React.Fragment>
 }
