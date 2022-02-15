@@ -1,7 +1,6 @@
 
 import { Button, Icon } from '@chakra-ui/react';
 import React from 'react';
-import { useData } from '../../libs/fns';
 import { supabase } from '../../libs/supabaseClient';
 
 
@@ -31,12 +30,11 @@ const OAuthIcons = {
 }
 
 const OAuthLoginBtn = ({ provider = 'google' }) => {
-  const { updateData } = useData();
-
   const available_providers = ['github', 'google'];
-  if (!available_providers.includes(provider)) return null;
 
-  const oAuthLogin = () => supabase.auth.signIn({ provider }).then(() => updateData());
+  const oAuthLogin = () => supabase.auth.signIn({ provider });
+
+  if (!available_providers.includes(provider)) return null;
 
   return (
     <Button onClick={oAuthLogin} >
