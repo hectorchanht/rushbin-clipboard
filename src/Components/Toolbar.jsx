@@ -1,17 +1,15 @@
 import { MinusIcon, SettingsIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex } from '@chakra-ui/react';
-import { useAtom } from 'jotai';
 import React from 'react';
 import { DeleteBtn, ResetPasswordBtn, SaveSettingBtn } from '../Components/Buttons';
-import { getSettingData } from '../libs/fns';
-import { settingAtom } from '../libs/states';
+import { getSettingData, useData } from '../libs/fns';
 import { supabase } from '../libs/supabaseClient';
 
 
 const Toolbar = () => {
-  const [setting, setSetting] = useAtom(settingAtom);
+  const { setting, setSetting, updateCounter } = useData();
 
-  React.useEffect(() => getSettingData(setting).then(setSetting), []);
+  React.useEffect(() => getSettingData(setting).then(setSetting), [updateCounter]);
 
   return setting?.isSettingHidden
     ? (
