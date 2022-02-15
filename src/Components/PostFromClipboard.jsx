@@ -6,7 +6,7 @@ import { postData, useData } from '../libs/fns';
 
 const PostFromClipboard = () => {
   const [clipboard] = useClipboard({ updateFrequency: 50 });
-  const { upd, isLoading, setIsLoading } = useData();
+  const { updateData, isLoading, setIsLoading } = useData();
 
 
   return <React.Fragment>
@@ -16,7 +16,7 @@ const PostFromClipboard = () => {
       onClick={async () => {
         setIsLoading(d => ({ ...d, post: true }));
         await navigator.clipboard.readText().then(postData);
-        upd();
+        updateData();
         setIsLoading(d => ({ ...d, post: false }));
       }}
       isLoading={isLoading.post} rightIcon={<AddIcon />}

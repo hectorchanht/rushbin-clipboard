@@ -36,7 +36,7 @@ const RenderLoadingData = (props) => (
 
 const ClipboardList = () => {
   const [, copyToClipboard] = useClipboard({ updateFrequency: 50 });
-  const { upd, data, isLoading, setIsLoading } = useData();
+  const { updateData, data, isLoading, setIsLoading } = useData();
 
   return isLoading.get
     ? <RenderLoadingData />
@@ -53,7 +53,7 @@ const ClipboardList = () => {
               onClick={async () => {
                 setIsLoading(d => ({ ...d, delete: true }));
                 await removeItem(d.id);
-                upd();
+                updateData();
                 setIsLoading(d => ({ ...d, delete: false }));
               }}
               isLoading={isLoading.delete}

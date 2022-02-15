@@ -4,7 +4,7 @@ import React from 'react';
 import { postData, useData } from '../libs/fns';
 
 const PostFromText = () => {
-  const { upd, isLoading, setIsLoading } = useData();
+  const { updateData, isLoading, setIsLoading } = useData();
   const [text, setText] = React.useState('');
 
   return <React.Fragment>
@@ -19,7 +19,7 @@ const PostFromText = () => {
       onClick={async () => {
         setIsLoading(d => ({ ...d, post: true }));
         await postData(text).then(() => setText(''));
-        upd();
+        updateData();
         setIsLoading(d => ({ ...d, post: false }));
       }}
       isLoading={isLoading.post}
