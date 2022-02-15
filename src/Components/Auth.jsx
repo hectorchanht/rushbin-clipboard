@@ -1,8 +1,9 @@
 import { MinusIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex, Icon, Input, InputGroup, InputRightElement } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import { useData } from '../libs/fns';
+import { useData, validateEmail } from '../libs/fns';
 import { supabase } from '../libs/supabaseClient';
+// import { GithubLoginBtn } from '../Components/Buttons'
 
 const AccountIcon = (props) => <Icon viewBox='0 0 24 24' {...props}>
   <path fill='currentColor' d="M3 5v14a2 2 0 002 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5a2 2 0 00-2 2zm12 4c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm-9 8c0-2 4-3.1 6-3.1s6 1.1 6 3.1v1H6v-1z"></path>
@@ -13,7 +14,7 @@ const SwitchAccountIcon = (props) => <Icon viewBox='0 0 24 24' {...props}>
 </Icon>;
 
 export default function Auth() {
-  const { upd, isLoading, setIsLoading, setting, setSetting, toastError } = useData();
+  const { updateData, isLoading, setIsLoading, setting, setSetting, toast, toastError } = useData();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,30 +27,44 @@ export default function Auth() {
     const { error } = await supabase.auth.signIn(cred);
 
     if (error) {
-      toastError(error?.message)
+      toastError(error?.message);
+    } else {
+      updateData();
     }
-
-    // upd();
     setIsLoading(d => ({ ...d, auth: false }));
   }
+
+  const clearEmailPassword = () => {
+    setEmail('');
+    setPassword('');
+  }
+
   const magicLogin = async () => {
     setIsLoading(d => ({ ...d, auth: true }));
 
     const { data, error } = await supabase.auth.signIn({ email });
 
     if (error) {
-      toastError(error?.message)
+      toastError(error?.message);
+    } else {
+      toast({
+        title: 'Go check Your email!',
+        status: 'success'
+      })
     }
     setIsLoading(d => ({ ...d, auth: false }));
   }
+
   const handleSignUp = async () => {
     setIsLoading(d => ({ ...d, auth: true }));
 
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
-      toastError(error?.message)
+      toastError(error?.message);
+    } else {
+      updateData();
+      clearEmailPassword()
     }
-    upd();
     setIsLoading(d => ({ ...d, auth: false }));
   }
 
@@ -58,9 +73,11 @@ export default function Auth() {
 
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toastError(error?.message)
+      toastError(error?.message);
+    } else {
+      updateData();
+      clearEmailPassword()
     }
-    upd();
     setIsLoading(d => ({ ...d, auth: false }));
   }
 
@@ -124,6 +141,7 @@ export default function Auth() {
         <Button onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}     >
           <MinusIcon />
         </Button>
+        {/* <GithubLoginBtn/> */}
 
         {(email.length >= 1) && validateEmail(email) && <>
           <Button
@@ -159,10 +177,3 @@ export default function Auth() {
   )
 }
 
-const validateEmail = (email) => {
-  return String(email)
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
-};
