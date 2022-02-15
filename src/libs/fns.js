@@ -3,8 +3,15 @@ import { useToast } from '@chakra-ui/react';
 import { useAtom } from 'jotai';
 import { useEffect, useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
-import { clipDataAtom, loadingAtom, settingAtom } from './states';
+import { clipDataAtom, DEFAULT_SETTING, loadingAtom, settingAtom } from './states';
 
+export const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
 
 export const getData = async ({ currentPage, pageSize }) => {
   if (!currentPage) throw new Error('need currentPage')
@@ -68,9 +75,8 @@ export const removeItem = async (id) => {
 }
 
 export const useData = () => {
-  const [update, setUpdate] = useState(1);
-  const upd = () => setUpdate(d => d + 1);
-
+  const [updateCounter, setUpdateCounter] = useState(1);
+  const updateData = () => setUpdateCounter(d => d + 1);
 
   const [data, setData] = useAtom(clipDataAtom);
   const [isLoading, setIsLoading] = useAtom(loadingAtom);
@@ -83,19 +89,41 @@ export const useData = () => {
     isClosable: true,
   });
 
-
   useEffect(async () => {
     if (currentPage < 1 || pageSize < 1) return;
 
     setIsLoading(d => ({ ...d, get: true }));
     const newData = await getData(setting);
-    
     setData(newData);
     setIsLoading(d => ({ ...d, get: false }));
-    // console.log(` fns.js --- {setting.currentPage, setting.pageSize, update}:`, { currentPage, pageSize, update, newData })
-  }, [currentPage, pageSize, update
-    , supabase.auth.user()?.id
-  ]);
+    // console.log(` fns.js --- {setting.currentPage, setting.pageSize, update}:`, { currentPage, pageSize, updateCounter, newData })
+  }, [currentPage, pageSize, updateCounter]);
 
-  return { upd, data, setData, isLoading, setIsLoading, setting, setSetting, toast, toastError }
-}
+  return { updateData, data, setData, isLoading, setIsLoading, setting, setSetting, toast, toastError }
+};
+
+export const getSettingData = async (setting = DEFAULT_SETTING) => {
+  let s = setting;
+  const user_id = supabase.auth.user()?.id;
+
+  if (!user_id) {
+    s = JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
+  } else {
+    const { data, error } = await supabase.from('rushbin-setting').select('*').eq('user_id', user_id).single();
+
+    if (!data) {
+      return s
+    } else {
+      s = data;
+    }
+
+    if (error) {
+      // occurs if `rushbin-setting`.rows === 0
+      if (error.message !== "JSON object requested, multiple (or no) rows returned") {
+        throw new Error(error.message);
+      }
+    }
+  }
+
+  return s;
+};
