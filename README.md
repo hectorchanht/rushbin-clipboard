@@ -1,3 +1,18 @@
+Rushbin - ur clipboard on web
+
+
+
+logic:
+
+const user_id = supabase.auth.user()?.id
+
+if user_id exist, get/set data to supabase
+else get/set to localStorage
+
+
+
+
+
 This project was bootstrapped with
 [Create React App](https://github.com/facebook/create-react-app).
 
