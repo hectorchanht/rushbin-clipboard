@@ -117,7 +117,6 @@ export const getSettingData = async () => {
     return JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
   } else {
     const { data, error } = await supabase.from('rushbin-setting').select('*').eq('user_id', user_id).single();
-    console.log({ data, error })
     if (!data) {
       return DEFAULT_SETTING
     } else {
