@@ -6,6 +6,8 @@ import PaginationTool from "./Components/PaginationTool";
 import PostFromClipboard from "./Components/PostFromClipboard";
 import PostFromText from './Components/PostFromText';
 import Toolbar from "./Components/Toolbar";
+import { useData } from './libs/fns';
+
 
 const config = {
   initialColorMode: "dark",
@@ -14,18 +16,28 @@ const config = {
 
 const theme = extendTheme({ config })
 
-export const App = () => (
-  <ChakraProvider theme={theme}>
-    <Container textAlign="center" fontSize="xl" my={4}>
-      {/* <ColorModeSwitcher /> */}
+export const App = () => {
+  const { updateData } = useData();
 
-      <Auth />
-      <Toolbar />
-      <PostFromText />
-      <PostFromClipboard />
-      <PaginationTool />
-      <ClipboardList />
+  React.useEffect(() => {
+    if (window.location.href.includes('#')) {
+      setTimeout(updateData, 2000);
+    }
+  }, [window.location]);
 
-    </Container>
-  </ChakraProvider>
-)
+  return (
+    <ChakraProvider theme={theme}>
+      <Container textAlign="center" fontSize="xl" my={4}>
+        {/* <ColorModeSwitcher /> */}
+
+        <Auth />
+        <Toolbar />
+        <PostFromText />
+        <PostFromClipboard />
+        <PaginationTool />
+        <ClipboardList />
+
+      </Container>
+    </ChakraProvider>
+  )
+}
