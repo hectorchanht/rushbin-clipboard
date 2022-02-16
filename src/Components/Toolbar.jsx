@@ -1,7 +1,7 @@
 import { MinusIcon, SettingsIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex } from '@chakra-ui/react';
 import React from 'react';
-import { DeleteBtn, ResetPasswordBtn, SaveSettingBtn } from '../Components/Buttons';
+import { DeleteBtn, ResetPasswordBtn, SaveSettingBtn,IsEditingBtn } from '../Components/Buttons';
 import { getSettingData, useData } from '../libs/fns';
 import { supabase } from '../libs/supabaseClient';
 
@@ -27,6 +27,7 @@ const Toolbar = () => {
           <MinusIcon />
         </Button>
         <DeleteBtn />
+        <IsEditingBtn/>
         {supabase.auth.user()?.email && <ResetPasswordBtn />}
         <SaveSettingBtn />
       </Flex>

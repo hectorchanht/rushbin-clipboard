@@ -7,7 +7,8 @@ export const DEFAULT_SETTING = {
   isAuthHidden: false,
   isSettingHidden: false,
   currentPage: 1,
-  pageSize: DEFAULT_PAGE_SIZE
+  pageSize: DEFAULT_PAGE_SIZE,
+  isEditing: false,
 };
 
 export const settingAtom = atom(DEFAULT_SETTING);
