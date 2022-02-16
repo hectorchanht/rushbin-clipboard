@@ -22,7 +22,6 @@ const WELCOME_MESSAGE = `
 
 https://github.com/hectorchanht/rushbin-clipboard-ui
 `;
-console.log(WELCOME_MESSAGE);
 
 ReactDOM.render(
   <React.StrictMode>
@@ -40,4 +39,5 @@ serviceWorker.unregister()
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+console.log(WELCOME_MESSAGE);
 reportWebVitals()
