@@ -3,7 +3,7 @@ import { useToast } from '@chakra-ui/react';
 import { useAtom } from 'jotai';
 import { useEffect, useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
-import { clipDataAtom, DEFAULT_SETTING, loadingAtom, settingAtom, DEFAULT_PAGE_SIZE } from './states';
+import { clipDataAtom, DEFAULT_PAGE_SIZE, DEFAULT_SETTING, loadingAtom, settingAtom } from './states';
 
 export const validateEmail = (email) => {
   return String(email)
@@ -30,7 +30,7 @@ export const getData = async ({ currentPage, pageSize }) => {
     end = (currentPage * pageSize) - 1;
 
   if (!user_id) {
-    const ls = JSON.parse(localStorage.getItem("rushbin-data"));
+    const ls = JSON.parse(getLocalStorage(tableName.data));
     dataArray = (ls && ls.length) ? ls.slice(start, end + 1) : [];
   } else {
     const { data, error } = await supabase.from('rushbin-data').select('*').eq('user_id', user_id).order('created_at', { ascending: false }).range(start, end);
@@ -48,8 +48,8 @@ export const postData = async (val) => {
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
-    const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
-    const id = JSON.parse(localStorage.getItem("incremental-id")) || 0;
+    const oldData = getLocalStorage(tableName.data);
+    const id = getLocalStorage(tableName.id);
 
     const data = [{ id, val, created_at: new Date(), user_id: 'localStorage' }, ...oldData];
 
@@ -68,7 +68,7 @@ export const deleteData = async (id) => {
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
-    const oldData = JSON.parse(localStorage.getItem("rushbin-data")) || [];
+    const oldData = getLocalStorage(tableName.data);
     const data = oldData.filter((d) => d.id !== id);
     localStorage.setItem("rushbin-data", JSON.stringify(data));
   } else {
@@ -114,7 +114,7 @@ export const getSettingData = async () => {
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
-    return JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
+    return getLocalStorage(tableName.setting);
   } else {
     const { data, error } = await supabase.from('rushbin-setting').select('*').eq('user_id', user_id).single();
     if (!data) {
@@ -124,3 +124,30 @@ export const getSettingData = async () => {
     }
   }
 };
+
+
+const tableName = {
+  setting: 'rushbin-setting',
+  data: 'rushbin-data',
+  id: 'incremental-id',
+};
+
+
+const getLocalStorage = (key = tableName.data) => {
+  switch (key) {
+    case tableName.setting: return JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
+    case tableName.data: return JSON.parse(localStorage.getItem("rushbin-setting")) || [];
+    case tableName.id: return JSON.parse(localStorage.getItem("incremental-id")) || 0;
+    default: throw new Error('not implemented in getLocalStorage ')
+  }
+}
+
+export const patchData = ({ id, val }) => {
+  const user_id = supabase.auth.user()?.id;
+
+  if (!user_id) {
+
+  } else {
+
+  }
+}
