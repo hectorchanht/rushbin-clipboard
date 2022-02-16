@@ -143,8 +143,9 @@ export default function Auth() {
         </Button>
         {!validateEmail(email) && (
           <>
-            <OAuthLoginBtn provider='google' />
             <OAuthLoginBtn provider='github' />
+            <OAuthLoginBtn provider='gitlab' />
+            <OAuthLoginBtn provider='google' />
           </>
         )}
 
