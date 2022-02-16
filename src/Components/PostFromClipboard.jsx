@@ -21,7 +21,7 @@ const PostFromClipboard = ({ showInput = true }) => {
       }}
       isLoading={isLoading.post}
       // rightIcon={<AddIcon />}
-      isDisabled={!clipboard}
+      // isDisabled={!clipboard}  // this cause error catching above useless
       colorScheme='teal' variant='solid'>
       Save Clipboard
     </Button>
