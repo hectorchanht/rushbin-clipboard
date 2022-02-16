@@ -1,4 +1,4 @@
-import { ChakraProvider, Container, extendTheme } from "@chakra-ui/react";
+import { ChakraProvider, Container, extendTheme, Stack } from "@chakra-ui/react";
 import * as React from "react";
 import Auth from "./Components/Auth";
 import ClipboardList from "./Components/ClipboardList";
@@ -9,12 +9,7 @@ import Toolbar from "./Components/Toolbar";
 import { useData } from './libs/fns';
 
 
-const config = {
-  initialColorMode: "dark",
-  useSystemColorMode: true,
-}
-
-const theme = extendTheme({ config })
+const theme = extendTheme({ config: { initialColorMode: "dark", useSystemColorMode: true } })
 
 export const App = () => {
   const { updateData } = useData();
@@ -25,17 +20,22 @@ export const App = () => {
     }
   }, [window.location]);
 
+
   return (
     <ChakraProvider theme={theme}>
       <Container textAlign="center" fontSize="xl" my={4}>
         {/* <ColorModeSwitcher /> */}
+        <Stack spacing={4}>
+          <div>
+            <Auth />
+            <Toolbar />
+          </div>
 
-        <Auth />
-        <Toolbar />
-        <PostFromText />
-        <PostFromClipboard />
-        <PaginationTool />
-        <ClipboardList />
+          <PostFromText />
+          <PostFromClipboard />
+          <PaginationTool />
+          <ClipboardList />
+        </Stack>
 
       </Container>
     </ChakraProvider>
