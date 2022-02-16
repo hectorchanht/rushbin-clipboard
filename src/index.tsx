@@ -5,6 +5,25 @@ import { App } from "./App"
 import reportWebVitals from "./reportWebVitals"
 import * as serviceWorker from "./serviceWorker"
 
+const WELCOME_MESSAGE = `
+██████╗ ██╗   ██╗███████╗██╗  ██╗
+██╔══██╗██║   ██║██╔════╝██║  ██║
+██████╔╝██║   ██║███████╗███████║
+██╔══██╗██║   ██║╚════██║██╔══██║
+██║  ██║╚██████╔╝███████║██║  ██║
+╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
+      ██████╗ ██╗███╗   ██╗      
+      ██╔══██╗██║████╗  ██║      
+█████╗██████╔╝██║██╔██╗ ██║█████╗
+╚════╝██╔══██╗██║██║╚██╗██║╚════╝
+      ██████╔╝██║██║ ╚████║      
+      ╚═════╝ ╚═╝╚═╝  ╚═══╝      
+
+
+https://github.com/hectorchanht/rushbin-clipboard-ui
+`;
+console.log(WELCOME_MESSAGE);
+
 ReactDOM.render(
   <React.StrictMode>
     <ColorModeScript />
