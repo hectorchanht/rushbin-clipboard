@@ -1,24 +1,21 @@
-import { AddIcon } from '@chakra-ui/icons';
 import { Button, Textarea } from '@chakra-ui/react';
 import React from 'react';
 import { postData, useData } from '../libs/fns';
 
-const PostFromText = () => {
+const PostFromText = ({ showInput = true }) => {
   const { updateData, isLoading, setIsLoading } = useData();
   const [text, setText] = React.useState('');
 
   return <React.Fragment>
-    <Textarea
-      mt={4}
-      value={text}
-      onChange={(e) => setText(e.target.value)}
-    />
+    {showInput && <Textarea value={text} onChange={(e) => setText(e.target.value)} />}
+
     <Button
       isFullWidth
       isDisabled={!text}
       onClick={async () => {
         setIsLoading(d => ({ ...d, post: true }));
-        await postData(text).then(() => setText(''));
+        await postData(text);
+        setText('');
         updateData();
         setIsLoading(d => ({ ...d, post: false }));
       }}

@@ -1,16 +1,15 @@
-import { AddIcon } from '@chakra-ui/icons';
 import { Button, Textarea } from '@chakra-ui/react';
 import React from 'react';
 import useClipboard from 'react-hook-clipboard';
 import { postData, useData } from '../libs/fns';
 
-const PostFromClipboard = () => {
+const PostFromClipboard = ({ showInput = true }) => {
   const [clipboard] = useClipboard({ updateFrequency: 64 });
   const { updateData, isLoading, setIsLoading, toastError } = useData();
 
 
   return <React.Fragment>
-    <Textarea value={clipboard} isReadOnly />
+    {showInput && <Textarea value={clipboard} isReadOnly />}
 
     <Button isFullWidth
       onClick={async () => {
