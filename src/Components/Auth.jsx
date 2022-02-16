@@ -94,7 +94,7 @@ export default function Auth() {
   if (supabase.auth.user()?.id) {
     return (
       <Flex justifyContent={'space-between'} my={4}>
-        <Button onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}        >
+        <Button bg={'transparent'} onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}        >
           <MinusIcon />
         </Button>
 
@@ -138,7 +138,7 @@ export default function Auth() {
       </InputGroup>
 
       {<Flex justifyContent={'space-between'}>
-        <Button onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}     >
+        <Button bg={'transparent'} onClick={() => setSetting((d) => ({ ...d, isAuthHidden: !d.isAuthHidden }))}     >
           <MinusIcon />
         </Button>
         {!validateEmail(email) && (
