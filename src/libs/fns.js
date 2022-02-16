@@ -30,7 +30,7 @@ export const getData = async ({ currentPage, pageSize }) => {
     end = (currentPage * pageSize) - 1;
 
   if (!user_id) {
-    const ls = JSON.parse(getLocalStorage(tableName.data));
+    const ls = getLocalStorage(tableNames.data);
     dataArray = (ls && ls.length) ? ls.slice(start, end + 1) : [];
   } else {
     const { data, error } = await supabase.from('rushbin-data').select('*').eq('user_id', user_id).order('created_at', { ascending: false }).range(start, end);
@@ -48,8 +48,8 @@ export const postData = async (val) => {
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
-    const oldData = getLocalStorage(tableName.data);
-    const id = getLocalStorage(tableName.id);
+    const oldData = getLocalStorage(tableNames.data);
+    const id = getLocalStorage(tableNames.id);
 
     const data = [{ id, val, created_at: new Date(), user_id: 'localStorage' }, ...oldData];
 
@@ -68,7 +68,7 @@ export const deleteData = async (id) => {
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
-    const oldData = getLocalStorage(tableName.data);
+    const oldData = getLocalStorage(tableNames.data);
     const data = oldData.filter((d) => d.id !== id);
     localStorage.setItem("rushbin-data", JSON.stringify(data));
   } else {
@@ -114,7 +114,7 @@ export const getSettingData = async () => {
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
-    return getLocalStorage(tableName.setting);
+    return getLocalStorage(tableNames.setting);
   } else {
     const { data, error } = await supabase.from('rushbin-setting').select('*').eq('user_id', user_id).single();
     if (!data) {
@@ -126,26 +126,43 @@ export const getSettingData = async () => {
 };
 
 
-const tableName = {
+const tableNames = {
   setting: 'rushbin-setting',
   data: 'rushbin-data',
   id: 'incremental-id',
 };
 
 
-const getLocalStorage = (key = tableName.data) => {
-  switch (key) {
-    case tableName.setting: return JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
-    case tableName.data: return JSON.parse(localStorage.getItem("rushbin-setting")) || [];
-    case tableName.id: return JSON.parse(localStorage.getItem("incremental-id")) || 0;
+const getLocalStorage = (table = tableNames.data) => {
+  switch (table) {
+    case tableNames.setting: return JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
+    case tableNames.data: return JSON.parse(localStorage.getItem("rushbin-data")) || [];
+    case tableNames.id: return JSON.parse(localStorage.getItem("incremental-id")) || 0;
     default: throw new Error('not implemented in getLocalStorage ')
   }
 }
 
 export const patchData = ({ id, val }) => {
+  console.log(` fns.js --- patchData:`, patchData)
+
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
+    const oldData = getLocalStorage(tableNames.data);
+    const newData = oldData.reduce((p, c) => {
+      console.log(` fns.js --- {p,c}:`, { p, c })
+
+      if (c.id === id) {
+        console.log(` fns.js --- diu:`,)
+
+        return [...p, { ...c, val }];
+      }
+      return [...p, c];
+    }, []);
+    console.log(` fns.js --- {oldData, newData}:`, { oldData, newData })
+
+    localStorage.setItem("rushbin-data", JSON.stringify(newData));
+
 
   } else {
 
