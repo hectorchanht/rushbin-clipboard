@@ -15,10 +15,10 @@ const IsEditingBtn = () => {
   const handleEdit = () => {
     if (setting.isEditing) {
       setSetting(d => ({ ...d, isEditing: !d.isEditing }))
-      toast({ title: 'Editable Turn On' })
+      toast({ title: 'Editable Turn Off' })
     } else {
       setSetting(d => ({ ...d, isEditing: !d.isEditing }))
-      toast({ title: 'Editable Turn Off' })
+      toast({ title: 'Editable Turn On' })
     }
 
   };
