@@ -23,7 +23,7 @@ const Toolbar = () => {
     )
     : (
       <Flex justifyContent={'space-between'} my={4}>
-        <Button onClick={() => setSetting((d) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
+        <Button bg={'transparent'} onClick={() => setSetting((d) => ({ ...d, isSettingHidden: !d.isSettingHidden }))} >
           <MinusIcon />
         </Button>
         <DeleteBtn />
