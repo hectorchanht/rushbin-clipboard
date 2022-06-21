@@ -28,7 +28,9 @@ deploy on [Vercel](https://vercel.com)
 
 ## How to run
 
-First, run the development server:
+create a supabase project and obtain its API key
+
+run the development server:
 
 ```bash
 npm run dev
