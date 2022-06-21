@@ -16,9 +16,13 @@ try this tool and feedbacks are appreciated.
 project bootstrapped with [React](https://reactjs.org/)
 
 [Chakra UI](https://chakra-ui.com/) as UI component library
+
 [jotai](https://github.com/pmndrs/jotai) as state management for React
+
 [Lodash](https://lodash.com/) as JavaScript utility library
+
 [moment](https://momentjs.com/) as datetime library
+
 [nanoid](https://github.com/ai/nanoid) as unique id generator
 
 backend service provider using [supabase](https://supabase.com/) for Database, Authentication
