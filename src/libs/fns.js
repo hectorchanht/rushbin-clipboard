@@ -1,7 +1,7 @@
 
 import { useToast } from '@chakra-ui/react';
 import { useAtom } from 'jotai';
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { supabase } from '../libs/supabaseClient';
 import { clipDataAtom, DEFAULT_PAGE_SIZE, DEFAULT_SETTING, loadingAtom, settingAtom } from './states';
 
@@ -81,7 +81,7 @@ export const deleteData = async (id) => {
 }
 
 export const useData = () => {
-  const [updateCounter, setUpdateCounter] = useState(1);
+  const [updateCounter, setUpdateCounter] = React.useState(1);
   const updateData = () => setUpdateCounter(d => d + 1);
 
   const [data, setData] = useAtom(clipDataAtom);
@@ -95,7 +95,7 @@ export const useData = () => {
     isClosable: true,
   });
 
-  useEffect(async () => {
+  React.useEffect(async () => {
     if (currentPage < 1 || pageSize < 1) return;
     if (isLoading.get) return;
 
