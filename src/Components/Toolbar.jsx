@@ -9,7 +9,9 @@ import { supabase } from '../libs/supabaseClient';
 const Toolbar = () => {
   const { setting, setSetting, updateCounter } = useData();
 
-  React.useEffect(() => getSettingData().then(setSetting), [updateCounter]);
+  React.useEffect(() => {
+    getSettingData().then(setSetting)
+  }, [updateCounter]);
 
   return setting?.isSettingHidden
     ? (
