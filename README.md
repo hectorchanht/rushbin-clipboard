@@ -1,5 +1,5 @@
 ## 🤑rushbin-clipboard
-how can i save my clipboard online/offline for free forever?
+how to save clipboard online/offline for free forever?
 
 now you have it, rushbin!
 
