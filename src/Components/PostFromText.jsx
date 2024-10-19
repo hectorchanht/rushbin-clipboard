@@ -3,7 +3,7 @@ import React from 'react';
 import { postData, useData } from '../libs/fns';
 
 const PostFromText = ({ showInput = true }) => {
-  const { updateData, isLoading, setIsLoading } = useData();
+  const { updateData, isLoading, setIsLoading, toastError } = useData();
   const [text, setText] = React.useState('');
 
   return <React.Fragment>
@@ -14,9 +14,10 @@ const PostFromText = ({ showInput = true }) => {
       isDisabled={!text}
       onClick={async () => {
         setIsLoading(d => ({ ...d, post: true }));
-        await postData(text);
+        await postData(text).then(updateData).catch(({ message }) => {
+          return toastError(message || 'Clipboard read permission denied, Enables it under site information of browser')
+        });
         setText('');
-        updateData();
         setIsLoading(d => ({ ...d, post: false }));
       }}
       isLoading={isLoading.post}

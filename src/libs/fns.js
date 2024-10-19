@@ -5,6 +5,12 @@ import React from 'react';
 import { supabase } from '../libs/supabaseClient';
 import { clipDataAtom, DEFAULT_PAGE_SIZE, DEFAULT_SETTING, loadingAtom, settingAtom } from './states';
 
+const tableNames = {
+  setting: 'rushbin-setting',
+  data: 'rushbin-data',
+  id: 'incremental-id', // for LocalStorage only
+};
+
 export const validateEmail = (email) => {
   return String(email)
     .toLowerCase()
@@ -56,7 +62,8 @@ export const postData = async (val) => {
     localStorage.setItem("rushbin-data", JSON.stringify(data));
     localStorage.setItem("incremental-id", JSON.stringify(Number(id) + 1));
   } else {
-    const { error } = await supabase.from('rushbin-data').insert([{ val, user_id }])
+    const { error, ...a } = await supabase.from('rushbin-data').insert({ val, user_id })
+    console.log(` fns.js --- a:`, a)
 
     if (error) {
       throw new Error(error.message);
@@ -95,16 +102,21 @@ export const useData = () => {
     isClosable: true,
   });
 
-  React.useEffect(async () => {
-    if (currentPage < 1 || pageSize < 1) return;
-    if (isLoading.get) return;
+  React.useEffect(() => {
 
-    setIsLoading(d => ({ ...d, get: true }));
-    const newData = await getData(setting);
-    setData(newData);
+    (async () => {
+      if (currentPage < 1 || pageSize < 1) return;
+      if (isLoading.get) return;
 
-    setIsLoading(d => ({ ...d, get: false }));
-    // console.log(` fns.js --- {setting.currentPage, setting.pageSize, update}:`, { currentPage, pageSize, updateCounter, newData })
+      setIsLoading(d => ({ ...d, get: true }));
+      const newData = await getData(setting);
+      setData(newData);
+
+      setIsLoading(d => ({ ...d, get: false }));
+      // console.log(` fns.js --- {setting.currentPage, setting.pageSize, update}:`, { currentPage, pageSize, updateCounter, newData })
+
+    })();
+
   }, [currentPage, pageSize, updateCounter]);
 
   return { updateData, updateCounter, data, setData, isLoading, setIsLoading, setting, setSetting, toast, toastError }
@@ -126,13 +138,6 @@ export const getSettingData = async () => {
 };
 
 
-const tableNames = {
-  setting: 'rushbin-setting',
-  data: 'rushbin-data',
-  id: 'incremental-id',
-};
-
-
 const getLocalStorage = (table = tableNames.data) => {
   switch (table) {
     case tableNames.setting: return JSON.parse(localStorage.getItem("rushbin-setting")) || DEFAULT_SETTING;
@@ -143,23 +148,21 @@ const getLocalStorage = (table = tableNames.data) => {
 }
 
 export const patchData = ({ id, val }) => {
-  console.log(` fns.js --- patchData:`, patchData)
+  // console.log(` fns.js --- patchData:`, patchData)
 
   const user_id = supabase.auth.user()?.id;
 
   if (!user_id) {
     const oldData = getLocalStorage(tableNames.data);
     const newData = oldData.reduce((p, c) => {
-      console.log(` fns.js --- {p,c}:`, { p, c })
+      // console.log(` fns.js --- {p,c}:`, { p, c })
 
       if (c.id === id) {
-        console.log(` fns.js --- diu:`,)
-
         return [...p, { ...c, val }];
       }
       return [...p, c];
     }, []);
-    console.log(` fns.js --- {oldData, newData}:`, { oldData, newData })
+    // console.log(` fns.js --- {oldData, newData}:`, { oldData, newData })
 
     localStorage.setItem("rushbin-data", JSON.stringify(newData));
 

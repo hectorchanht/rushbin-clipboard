@@ -16,7 +16,9 @@ const PostFromClipboard = ({ showInput = true }) => {
         setIsLoading(d => ({ ...d, post: true }));
         await navigator.clipboard.readText()
           .then(postData).then(updateData)
-          .catch(() => toastError('Clipboard read permission denied, Enables it under site information of browser'));
+          .catch(({message}) => {
+            return toastError(message || 'Clipboard read permission denied, Enables it under site information of browser')
+          });
         setIsLoading(d => ({ ...d, post: false }));
       }}
       isLoading={isLoading.post}
